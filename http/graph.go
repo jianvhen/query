@@ -3,13 +3,69 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+	"math"
+
 	"github.com/open-falcon/common/model"
 	"github.com/open-falcon/query/graph"
 	"github.com/toolkits/logger"
-	"net/http"
-	"strconv"
-	"time"
 )
+
+type EChartsData struct {
+	Timestamp []interface{}              `json:"timestamp"`
+	Data      map[string]([]interface{}) `json:"data"`
+}
+
+func ParseDuration(param string) (start, end int64) {
+	var now, before time.Time
+	dur, err := strconv.Atoi(param[0 : len(param)-1])
+	if err != nil { //can't get number
+		dur = 1
+	}
+	now = time.Now()
+	if strings.HasSuffix(param, "h") {
+		//1e9 means 1 seconds in go
+		before = now.Add(-time.Duration(1e9 * 60 * 60 * dur))
+	} else if strings.HasSuffix(param, "d") {
+		before = now.Add(-time.Duration(1e9 * 60 * 60 * 24 * dur))
+	} else { //param error
+		return 0, 0
+	}
+	return before.Unix(), now.Unix()
+}
+
+//如果请求的不同counter的采集周期不一致，或者不同的采集频率，可能出现不准确
+func (this *EChartsData) GetEchartsData(datas []*model.GraphQueryResponse) {
+	if this.Data == nil {
+		this.Data = make(map[string]([]interface{}))
+	}
+	var max int
+	var index int
+	for i, _ := range datas {
+		if max < len(datas[i].Values) {
+			max = len(datas[i].Values)
+			index = i
+		}
+	}
+	counter := datas[index].Counter
+	for _, val := range datas[index].Values {
+		this.Timestamp = append(this.Timestamp, val.Timestamp)
+	}
+	for i, _ := range datas {
+		counter = datas[i].Counter
+		for j, val := range datas[i].Values {
+			if val.Timestamp == this.Timestamp[j] {
+				this.Data[counter] = append(this.Data[counter], val.Value)
+			} else {
+				this.Data[counter] = append(this.Data[counter], model.JsonFloat(math.NaN())) //not data
+			}
+		}
+	}
+}
 
 type GraphHistoryParam struct {
 	Start            int                    `json:"start"`
@@ -160,4 +216,53 @@ func configGraphRoutes() {
 		}
 		StdRender(w, data, nil)
 	})
+
+	//method:get
+	http.HandleFunc("/graph/sdp/one", func(w http.ResponseWriter, r *http.Request) {
+		var duration, cf, endpoint string
+		var counters []string
+		var echarts EChartsData
+		r.ParseForm()
+		for key, value := range r.Form {
+			switch key {
+			case "duration":
+				duration = value[0]
+			case "cf":
+				cf = value[0]
+			case "endpoint":
+				endpoint = value[0]
+			case "counter":
+				counters = value
+			}
+		}
+
+		if endpoint == "" || len(counters) == 0 {
+			StdRender(w, "", errors.New("empty_endpoint_counter"))
+			return
+		}
+		//set default cf
+		if cf == "" {
+			cf = "AVERAGE"
+		}
+
+		if cf != "AVERAGE" && cf != "MAX" && cf != "MIN" {
+			StdRender(w, "", errors.New("invalid_cf"))
+			return
+		}
+
+		start, end := ParseDuration(duration)
+
+		data := []*model.GraphQueryResponse{}
+		for _, counter := range counters {
+			result, err := graph.QueryOne(start, end, cf, endpoint, string(counter))
+			if err != nil {
+				logger.Error("query one fail: %v", err)
+			}
+			data = append(data, result)
+		}
+		echarts.GetEchartsData(data)
+
+		StdRender(w, echarts, nil)
+	})
+
 }
