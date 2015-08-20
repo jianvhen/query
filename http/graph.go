@@ -290,14 +290,14 @@ func configGraphRoutes() {
 
 		data := []*GraphAliveResponse{}
 		for _, param := range body {
-			var res *GraphAliveResponse
+			var res GraphAliveResponse
 			res.Endpoint = param.Endpoint
 			last, err := graph.Last(param.Endpoint, "agent.alive")
 			if err != nil {
 				// can't get data from graph return false
 				logger.Trace("graph.last fail, resp: %v, err: %v", last, err)
 				res.Status = 0
-				data = append(data, res)
+				data = append(data, &res)
 				continue
 			}
 			if time.Now().Unix()-last.Value.Timestamp <= 120 {
@@ -305,7 +305,7 @@ func configGraphRoutes() {
 			} else {
 				res.Status = 0
 			}
-			data = append(data, res)
+			data = append(data, &res)
 		}
 		StdRender(w, data, nil)
 	})
