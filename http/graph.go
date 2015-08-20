@@ -3,11 +3,11 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"math"
 
 	"github.com/open-falcon/common/model"
 	"github.com/open-falcon/query/graph"
@@ -64,6 +64,15 @@ func (this *EChartsData) GetEchartsData(datas []*model.GraphQueryResponse) {
 			}
 		}
 	}
+}
+
+type GraphAliveParam struct {
+	Endpoint string `json:"endpoint"`
+}
+
+type GraphAliveResponse struct {
+	Endpoint string `json:"endpoint"`
+	Status   int    `json:"status"`
 }
 
 type GraphHistoryParam struct {
@@ -262,6 +271,43 @@ func configGraphRoutes() {
 		echarts.GetEchartsData(data)
 
 		StdRender(w, echarts, nil)
+	})
+
+	// post, last
+	http.HandleFunc("/graph/sdp/alive", func(w http.ResponseWriter, r *http.Request) {
+		var body []*GraphAliveParam
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&body)
+		if err != nil {
+			StdRender(w, "", err)
+			return
+		}
+
+		if len(body) == 0 {
+			StdRender(w, "", errors.New("empty_payload"))
+			return
+		}
+
+		data := []*GraphAliveResponse{}
+		for _, param := range body {
+			var res *GraphAliveResponse
+			res.Endpoint = param.Endpoint
+			last, err := graph.Last(param.Endpoint, "agent.alive")
+			if err != nil {
+				// can't get data from graph return false
+				logger.Trace("graph.last fail, resp: %v, err: %v", last, err)
+				res.Status = 0
+				data = append(data, res)
+				continue
+			}
+			if time.Now().Unix()-last.Value.Timestamp <= 120 {
+				res.Status = 1
+			} else {
+				res.Status = 0
+			}
+			data = append(data, res)
+		}
+		StdRender(w, data, nil)
 	})
 
 }
