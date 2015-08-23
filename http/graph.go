@@ -200,6 +200,15 @@ func configGraphRoutes() {
 
 	// post, last
 	http.HandleFunc("/graph/last", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+			w.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Content-Length", "0")
+			w.WriteHeader(200)
+			return
+		}
 		var body []*model.GraphLastParam
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&body)
