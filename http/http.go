@@ -25,9 +25,10 @@ func RenderJson(w http.ResponseWriter, v interface{}) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization")
-	w.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization,DNT,X-Mx-ReqToken,Keep-Alive,User-Agen")
+	w.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS,PUT")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Write(bs)
 }
 
