@@ -2,10 +2,10 @@ package g
 
 import (
 	"encoding/json"
-	"github.com/toolkits/file"
-	"github.com/toolkits/logger"
 	"log"
 	"sync"
+
+	"github.com/toolkits/file"
 )
 
 type HttpConfig struct {
@@ -14,19 +14,25 @@ type HttpConfig struct {
 }
 
 type GraphConfig struct {
-	Backends       string `json:"backends"`
-	ReloadInterval int    `json:"reload_interval"`
-	Timeout        int    `json:"timeout"`   // millisecond, connect timeout or request timeout
-	MaxConns       int    `json:"max_conns"` // 链接池
-	MaxIdle        int    `json:"max_idle"`
-	Replicas       int    `json:"replicas"`
+	ConnTimeout int32             `json:"connTimeout"`
+	CallTimeout int32             `json:"callTimeout"`
+	MaxConns    int32             `json:"maxConns"`
+	MaxIdle     int32             `json:"maxIdle"`
+	Replicas    int32             `json:"replicas"`
+	Cluster     map[string]string `json:"cluster"`
+}
+
+type ApiConfig struct {
+	Query     string `json:"query"`
+	Dashboard string `json:"dashboard"`
+	Max       int    `json:"max"`
 }
 
 type GlobalConfig struct {
-	LogLevel string       `json:"log_level"`
-	SlowLog  int          `json:"slowlog"` // 单位ms，耗时超过这个的所有转发会被记录到日志
-	Graph    *GraphConfig `json:"graph"`
-	Http     *HttpConfig  `json:"http"`
+	Debug string       `json:"debug"`
+	Http  *HttpConfig  `json:"http"`
+	Graph *GraphConfig `json:"graph"`
+	Api   *ApiConfig   `json:"api"`
 }
 
 var (
@@ -43,31 +49,30 @@ func Config() *GlobalConfig {
 
 func ParseConfig(cfg string) {
 	if cfg == "" {
-		log.Fatalln("use -c to specify configuration file")
+		log.Fatalln("config file not specified: use -c $filename")
 	}
 
 	if !file.IsExist(cfg) {
-		log.Fatalln("config file:", cfg, "is not existent")
+		log.Fatalln("config file specified not found:", cfg)
 	}
 
 	ConfigFile = cfg
 
 	configContent, err := file.ToTrimString(cfg)
 	if err != nil {
-		log.Fatalln("read config file:", cfg, "fail:", err)
+		log.Fatalln("read config file", cfg, "error:", err.Error())
 	}
 
 	var c GlobalConfig
 	err = json.Unmarshal([]byte(configContent), &c)
 	if err != nil {
-		log.Fatalln("parse config file:", cfg, "fail:", err)
+		log.Fatalln("parse config file", cfg, "error:", err.Error())
 	}
 
+	// set config
 	configLock.Lock()
 	defer configLock.Unlock()
-
 	config = &c
 
-	logger.SetLevel(config.LogLevel)
-	log.Println("read config file:", cfg, "successfully")
+	log.Println("g.ParseConfig ok, file", cfg)
 }
