@@ -87,6 +87,12 @@ func configGraphRoutes() {
 
 	// method:post
 	http.HandleFunc("/graph/history", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method == "OPTIONS" {
+			StdRender(w, "OK", nil)
+			return
+		}
+
 		// statistics
 		proc.HistoryRequestCnt.Incr()
 
@@ -133,6 +139,11 @@ func configGraphRoutes() {
 
 	// post, info
 	http.HandleFunc("/graph/info", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method == "OPTIONS" {
+			StdRender(w, "OK", nil)
+			return
+		}
 		// statistics
 		proc.InfoRequestCnt.Incr()
 
@@ -169,6 +180,11 @@ func configGraphRoutes() {
 
 	// post, last
 	http.HandleFunc("/graph/last", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method == "OPTIONS" {
+			StdRender(w, "OK", nil)
+			return
+		}
 		// statistics
 		proc.LastRequestCnt.Incr()
 
@@ -208,6 +224,11 @@ func configGraphRoutes() {
 
 	// post, last/raw
 	http.HandleFunc("/graph/last/raw", func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method == "OPTIONS" {
+			StdRender(w, "OK", nil)
+			return
+		}
 		// statistics
 		proc.LastRawRequestCnt.Incr()
 
