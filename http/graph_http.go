@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZeaLoVe/query/graph"
-	"github.com/ZeaLoVe/query/proc"
+	"github.com/jianvhen/query/graph"
+	"github.com/jianvhen/query/proc"
 	cmodel "github.com/open-falcon/common/model"
 )
 

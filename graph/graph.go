@@ -13,7 +13,7 @@ import (
 	nset "github.com/toolkits/container/set"
 	spool "github.com/toolkits/pool/simple_conn_pool"
 
-	"github.com/ZeaLoVe/query/g"
+	"github.com/jianvhen/query/g"
 )
 
 // 连接池

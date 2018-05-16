@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ZeaLoVe/query/g"
-	"github.com/ZeaLoVe/query/graph"
-	"github.com/ZeaLoVe/query/http"
-	"github.com/ZeaLoVe/query/proc"
+	"github.com/jianvhen/query/g"
+	"github.com/jianvhen/query/graph"
+	"github.com/jianvhen/query/http"
+	"github.com/jianvhen/query/proc"
 )
 
 func main() {

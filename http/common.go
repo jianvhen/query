@@ -6,7 +6,7 @@ import (
 
 	"github.com/toolkits/file"
 
-	"github.com/ZeaLoVe/query/g"
+	"github.com/jianvhen/query/g"
 )
 
 func configCommonRoutes() {

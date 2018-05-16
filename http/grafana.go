@@ -3,7 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ZeaLoVe/query/g"
+	"github.com/jianvhen/query/g"
 	"io/ioutil"
 	"log"
 	"math/rand"

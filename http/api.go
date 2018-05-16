@@ -2,7 +2,7 @@ package http
 
 import (
 	"bytes"
-	"github.com/ZeaLoVe/query/g"
+	"github.com/jianvhen/query/g"
 	"io/ioutil"
 	"log"
 	"net/http"

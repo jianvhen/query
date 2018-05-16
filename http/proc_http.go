@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ZeaLoVe/query/graph"
-	"github.com/ZeaLoVe/query/proc"
+	"github.com/jianvhen/query/graph"
+	"github.com/jianvhen/query/proc"
 )
 
 func configProcHttpRoutes() {
